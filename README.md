@@ -1,3 +1,4 @@
 # Kromium
 ### Interpreted statically-typed programming langauge
-![kromium1-cover](file:///C:/Users/kozom/OneDrive/Desktop/New%20Project.png)
+
+![kromium-cover](https://github.com/user-attachments/assets/b14fde76-d28e-4ba0-b6b8-e7c792ed863a)
