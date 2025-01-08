@@ -1,2 +1,2 @@
 # Kromium
-# Interpreted statically-typed programming langauge
+### Interpreted statically-typed programming langauge
