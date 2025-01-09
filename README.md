@@ -7,6 +7,7 @@
 - Basic data types : integer, double, string, list, func
 - Unary operations
 - Binary operations
+- Stronglly-typed variables
 - If/elif/else expressions
 - for and while loops
 - functions
