@@ -10,7 +10,8 @@
 - Stronglly-typed variables
 - If/elif/else expressions
 - for and while loops
-- functions
+- functions and built-in function
+- Multiline statments and file support (**coming soon!)
 
 ### How to use Kromium
 
