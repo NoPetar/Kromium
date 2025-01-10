@@ -163,8 +163,10 @@ class Interpreter:
             return res.fail(
                 RunTimeError(node.start, node.end, f'"{var_name}" is not defined', ctx)
             )
-
-        return res.success(value.copy().set_pos(node.start, node.end))
+        try:
+            value = value.copy().set_pos(node.start, node.end).set_context(ctx)
+        except: pass
+        return res.success(value)
 
     def visit_VarAssignNode(self, node, ctx):
         res = RTResult()
@@ -428,6 +430,7 @@ class Interpreter:
         value_to_call = res.log(self.visit(node.caller, context))
         if res.error:
             return res
+        
         value_to_call = value_to_call.copy().set_pos(node.start, node.end)
 
         for arg_node in node.arg_nodes:
@@ -438,6 +441,15 @@ class Interpreter:
         return_value = res.log(value_to_call.execute(args))
         if res.error:
             return res
+        
+        if hasattr(value_to_call, 'copy'):
+            value_to_call = value_to_call.copy().set_pos(node.start, node.end)
+        else:
+            return res.fail(
+                RunTimeError(
+                    node.start, node.end, f"'{value_to_call}' is not callable", context
+                )
+            )
         return res.success(return_value)
 
     def visit_ListNode(self, node, ctx):
@@ -450,7 +462,7 @@ class Interpreter:
         return res.success(List(els).set_context(ctx).set_pos(node.start, node.end))
 
     def visit_NoneType(self, node, ctx):
-        return RTResult.success(NoneType(), "\n")
+        return RTResult().success(NoneType())
     
     
 class Value:
@@ -529,7 +541,11 @@ class Value:
 class Integer(Value):
     def __init__(self, value):
         super().__init__()
-        self.value = int(value)
+        try:
+            self.value = int(value)
+        except:
+            self.value = value.value
+        self.str_type = 'int'
 
     def addition(self, other):
         if isinstance(other, Union[Integer, Double]):
@@ -676,12 +692,13 @@ class Integer(Value):
     def __repr__(self):
         return str(self.value)
 
-
+    
 class Double(Value):
     def __init__(self, value):
         super().__init__()
         self.value = float(value)
-
+        self.str_type = 'double'
+        
     def addition(self, other):
         if isinstance(other, Union[Integer, Double]):
             return Double(self.value + other.value).set_context(self.context), None
@@ -803,6 +820,7 @@ class String(Value):
     def __init__(self, value):
         super().__init__()
         self.value = value
+        self.str_type = 'string'
 
     def addition(self, other):
         if isinstance(other, String):
@@ -851,7 +869,7 @@ class List(Value):
     def __init__(self, elements):
         super().__init__()
         self.elements = elements
-
+        self.str_type = 'list'
     def addition(self, other):
         new = self.copy()
         new.elements.append(other)
@@ -904,7 +922,10 @@ class List(Value):
 class BaseFunc(Value):
     def __init__(self, name):
         self.name = name or "<anonymous>"
-
+        self.context = None
+        self.pos_start = None
+        self.pos_end = None
+        
     def generate_ctx(self):
         ctx = Context(self.name, self.context, self.pos_start)
         ctx.symbol_table = SymbolTable(ctx.parent.symbol_table)
@@ -958,8 +979,9 @@ class Function(BaseFunc):
 
     def execute(self, args):
         res = RTResult()
-        ctx = self.generate_ctx()
         itr = Interpreter()
+        ctx = self.generate_ctx()
+        
 
         res.log(self.check_and_populate(self.args, args, ctx))
         if res.error:
@@ -969,7 +991,8 @@ class Function(BaseFunc):
         if res.error:
             return res
         return res.success(value)
-
+    
+    
     def copy(self):
         copy = Function(self.name, self.exec_code, self.args)
         copy.set_context(self.context)
@@ -979,57 +1002,64 @@ class Function(BaseFunc):
     def __repr__(self):
         return f"<function {self.name}>"
 
-
 class BuiltInFunc(BaseFunc):
     def __init__(self, name):
         super().__init__(name)
-
     def execute(self, args):
         res = RTResult()
         exec_ctx = self.generate_ctx()
 
-        method = locals()[f"_{self.name}_"]()
+        method_name = f'_{self.name}_'
+        method = getattr(self, method_name, self.no_visit_method)
 
         res.log(self.check_and_populate(method.arg_names, args, exec_ctx))
-        if res.error:
-            return res
+        if res.error: return res
 
-        value = res.log(method(exec_ctx))
-        if res.error:
-            return res
-        return res.success(value)
-
+        return_value = res.log(method(exec_ctx))
+        if res.error: return res
+        return res.success(return_value)
+  
+    def no_visit_method(self, node, context):
+        raise Exception(f'No _{self.name}_ method defined')
+    
+    
     def copy(self):
-        copy = Function(self.name, self.exec_code, self.args)
-        copy.set_context(self.context)
-        copy.set_pos(self.pos_start, self.pos_end)
-        return copy
+        copy_ = BuiltInFunc(self.name)
+        copy_.set_context(self.context)
+        copy_.set_pos(self.pos_start, self.pos_end)
+        return copy_
     def __repr__(self):
         return f'<built-in function {self.name}>'
 
     def _out_(self, exec_ctx):
-        print(exec_ctx.symbol_table.get('value'))    
-        return RTResult.success(Integer.null)
+        print(exec_ctx.symbol_table.get_var('value')[0])    
+        return RTResult().success(Integer.null)
     def _input_(self, exec_ctx):
         inputed = input()
-        return RTResult.success(String(inputed))
-    def _int_(self, exec_ctx):
-        arg = exec_ctx.symbol_table.get('value')
-        try:
-            arg = Integer(arg)
-            return RTResult.success(arg)
-        except:
-            return print(f'Cannot convert {arg} to type Integer')
+        return RTResult().success(String(inputed))
+    def _integer_(self, exec_ctx):
+        arg = exec_ctx.symbol_table.get_var('value')[0]
+        arg = Integer(arg)
+        return RTResult().success(arg)
+        
     
-    
+    def _typeof_(self, exec_ctx):
+        return RTResult().success(exec_ctx.symbol_table.get_var('value')[0].str_type)
+        
+    def _len_(self, exec_ctx):
+        v = exec_ctx.symbol_table.get_var('value')[0]
+        return RTResult().success(len(str(v.value)))   
+        
     _out_.arg_names = ['value']
     _input_.arg_names = []
-    _int_.arg_names = ['value']
+    _integer_.arg_names = ['value']
+    _typeof_.arg_names = ['value']
+    _len_.arg_names = ['value']
 
 
 class NoneType(Value):
     def __init__(self):
-        self.value = None
+        self.value = '\n'
         self.error = None
     
 class Context:
@@ -1038,6 +1068,13 @@ class Context:
         self.parent = parent
         self.parent_entry_pos = parent_entry_pos
         self.symbol_table = None
+
+
+BuiltInFunc.out = BuiltInFunc("out")
+BuiltInFunc.input = BuiltInFunc("input")
+BuiltInFunc.integer = BuiltInFunc("integer")
+BuiltInFunc.typeof = BuiltInFunc("typeof")
+BuiltInFunc.len = BuiltInFunc("len")
 
 
 Integer.null = Integer(0)
