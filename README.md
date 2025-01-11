@@ -25,13 +25,13 @@ You'll need: `git` and `python` (v3.9 or above)
 
 #### Datatypes
 
-| Data type | Example     | Keyword |
-|-----------|-------------|---------|
-| String    | "abc", "ww" | string  |
-| Integer   | 1, 5, 6     | int     |
-| Double    | 1.3, 4.55   | double  |
-| List      | [1 , "def"] | list    |
-| Function  | <function a>| func    |
+| Data type | Example       | Keyword |
+|-----------|---------------|---------|
+| String    | "abc", "ww"   | string  |
+| Integer   | 1, 5, 6       | int     |
+| Double    | 1.3, 4.55     | double  |
+| List      | [1 , "def"]   | list    |
+| Function  | "<function a>"| func    |
 
 
 Variable Declaration
@@ -104,4 +104,4 @@ while i < 10 {
 | double-equals     | ==          |
 | power             | ** or ^     |
 | and               | '&' or 'and'|
-| or                | '|' or 'or' |
+| or                | "|" or 'or' |
