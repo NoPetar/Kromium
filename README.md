@@ -13,6 +13,8 @@
 - functions and built-in functions
 - multi-line statments
 - file support (*coming soon!*)
+- functions and built-in function
+- Multiline statments and file support (**coming soon!)
 
 ### How to use Kromium
 
