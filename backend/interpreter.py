@@ -12,13 +12,21 @@ class SymbolTable:
 
     def get_var(self, name):
         try:
-            
             value = self.values.get(name)
             data_type = self.types.get(name)
             if value == None and data_type == None:
-                return self.parent.get_var(name)
+                if isinstance(name, NoneType):
+                    value, data_type = None, None
+                    return [value, data_type]
+                else:
+                    if self.parent == None:
+                        value, data_type = None, None
+                        return [value, data_type]
+                    else:
+                        return self.parent.get_var(name)
         except TypeError:
             value, data_type = None, None
+            return [value, data_type]
 
         return [value, data_type]
 
