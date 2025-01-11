@@ -31,7 +31,7 @@ You'll need: `git` and `python` (v3.9 or above)
 | Integer   | 1, 5, 6       | int     |
 | Double    | 1.3, 4.55     | double  |
 | List      | [1 , "def"]   | list    |
-| Function  | "<function a>"| func    |
+| Function  | &lt;function a&gt;| func    |
 
 
 Variable Declaration
@@ -104,4 +104,4 @@ while i < 10 {
 | double-equals     | ==          |
 | power             | ** or ^     |
 | and               | '&' or 'and'|
-| or                | "|" or 'or' |
+| or                | "\|" or 'or' |
