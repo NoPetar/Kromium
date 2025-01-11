@@ -12,13 +12,11 @@ class SymbolTable:
 
     def get_var(self, name):
         try:
+            
             value = self.values.get(name)
             data_type = self.types.get(name)
             if value == None and data_type == None:
-                try:
-                    return self.parent.get(name)
-                except:
-                    value, data_type = None, None
+                return self.parent.get_var(name)
         except TypeError:
             value, data_type = None, None
 
@@ -158,7 +156,7 @@ class Interpreter:
         res = RTResult()
         var_name = node.var_name_tok.value
         value = ctx.symbol_table.get_var(var_name)[0]
-
+        
         if not value:
             return res.fail(
                 RunTimeError(node.start, node.end, f'"{var_name}" is not defined', ctx)
@@ -311,8 +309,8 @@ class Interpreter:
 
     def visit_IfNode(self, node, context):
         res = RTResult()
-
-        for condition, expr in node.cases:
+        
+        for condition, expr, shrn  in node.cases:
             condition_value = res.log(self.visit(condition, context))
             if res.error:
                 return res
@@ -321,15 +319,16 @@ class Interpreter:
                 expr_value = res.log(self.visit(expr, context))
                 if res.error:
                     return res
-                return res.success(expr_value)
+                return res.success(Integer.null if shrn else expr_value)
 
         if node.else_case:
-            else_value = res.log(self.visit(node.else_case, context))
+            expr , shrn = node.else_case
+            else_value = res.log(self.visit(expr, context))
             if res.error:
                 return res
-            return res.success(else_value)
+            return res.success(Integer.null if shrn else else_value)
 
-        return res.success(None)
+        return res.success(Integer.null)
 
     def visit_ForNode(self, node, ctx):
         res = RTResult()
@@ -379,7 +378,7 @@ class Interpreter:
                 return res
 
         return res.success(
-            List(elements).set_context(ctx).set_pos(node.start, node.end)
+            Integer.null if node.should_return_null else List(elements).set_context(ctx).set_pos(node.start, node.end)
         )
 
     def visit_WhileNode(self, node, ctx):
@@ -398,7 +397,7 @@ class Interpreter:
                 return res
 
         return res.success(
-            List(elements).set_context(ctx).set_pos(node.start, node.end)
+            Integer.null if node.should_return_null else List(elements).set_context(ctx).set_pos(node.start, node.end)
         )
 
     def visit_StringNode(self, node, ctx):
@@ -413,7 +412,7 @@ class Interpreter:
         body_node = node.exec_code
         arg_names = [arg_name.value for arg_name in node.arg_name_toks]
         func_value = (
-            Function(func_name, body_node, arg_names)
+            Function(func_name, body_node, arg_names, node.should_return_null)
             .set_context(context)
             .set_pos(node.start, node.end)
         )
@@ -972,10 +971,11 @@ class BaseFunc(Value):
 
 
 class Function(BaseFunc):
-    def __init__(self, name, exec_code, args):
+    def __init__(self, name, exec_code, args, should_return_null):
         super().__init__(name)
         self.exec_code = exec_code
         self.args = args
+        self.shrn = should_return_null
 
     def execute(self, args):
         res = RTResult()
@@ -990,11 +990,11 @@ class Function(BaseFunc):
         value = res.log(itr.visit(self.exec_code, ctx))
         if res.error:
             return res
-        return res.success(value)
+        return res.success(Integer.null if self.shrn else value)
     
     
     def copy(self):
-        copy = Function(self.name, self.exec_code, self.args)
+        copy = Function(self.name, self.exec_code, self.args, self.shrn)
         copy.set_context(self.context)
         copy.set_pos(self.pos_start, self.pos_end)
         return copy
@@ -1061,6 +1061,8 @@ class NoneType(Value):
     def __init__(self):
         self.value = '\n'
         self.error = None
+    def __repr__(self):
+        return str(Integer.null)
     
 class Context:
     def __init__(self, display_name, parent=None, parent_entry_pos=None):

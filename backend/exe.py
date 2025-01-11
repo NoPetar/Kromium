@@ -32,7 +32,6 @@ def run(fn, code):
     ctx = interpreter.Context("<main>")
     ctx.symbol_table = global_symbol_table
     
-    
-    
+
     r = i.visit(ast.node, ctx)
     return r.value, r.error

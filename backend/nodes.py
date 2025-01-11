@@ -98,35 +98,36 @@ class IfNode:
         self.cases = cases
         self.else_case = else_case
         self.start = self.cases[0][0].start
-        self.end = self.else_case or self.cases[-1][0].end
+        self.end = (self.else_case or self.cases[-1])[0].end
         
         
 class ForNode:
-    def __init__(self, var_name_tok , op_start, end_value_node, op_end, step_value_node, exec_node):
+    def __init__(self, var_name_tok , op_start, end_value_node, op_end, step_value_node, exec_node, ret_null):
         self.var_name_tok  = var_name_tok 
         self.end_value_node = end_value_node
         self.step_value_node = step_value_node
         self.exec_node = exec_node
         self.op_start = op_start
         self.op_end = op_end
+        self.should_return_null = ret_null
 
         self.start = self.var_name_tok.start
         self.end = self.exec_node.end
         
 class WhileNode:
-    def __init__(self, condition, exec_node):
+    def __init__(self, condition, exec_node, ret_null):
         self.condition = condition
         self.exec_node = exec_node
-
+        self.should_return_null = ret_null
         self.start = self.condition.start
         self.end = self.exec_node.end
 
 class FuncDefNode:
-    def __init__(self, var_name_tok, arg_name_toks, exec_code):
+    def __init__(self, var_name_tok, arg_name_toks, exec_code, ret_null):
         self.var_name_tok = var_name_tok
         self.arg_name_toks = arg_name_toks
         self.exec_code = exec_code
-
+        self.should_return_null= ret_null
         if self.var_name_tok: self.start = self.var_name_tok.start
         elif len(self.arg_name_toks) >= 1: self.start = self.arg_name_toks[0].start
         else: self.start = self.exec_code.start

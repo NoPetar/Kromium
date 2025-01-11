@@ -29,6 +29,7 @@ TT_ARROW = "TT_ARROW"  # ->
 TT_COMMA = "TT_COMMA"  # ,
 TT_LSQRBRCKT = "TT_LSQRBRCKT"
 TT_RSQRBRCKT = "TT_RSQRBRCKT"
+TT_NEWL = 'TT_NEWL'
 TT_EOF = "TT_EOF"
 
 ###########################################

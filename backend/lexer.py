@@ -102,6 +102,9 @@ class Lexer:
             elif self.current_char == ",":
                 toks.append(Token(tokens.TT_COMMA, start=self.pos))
                 self.advance()
+            elif self.current_char in "$\n":
+                toks.append(Token(tokens.TT_NEWL, start=self.pos))
+                self.advance()
             elif self.current_char in digits:
                 toks.append(self.bake_number())
             else:
@@ -110,6 +113,7 @@ class Lexer:
                 self.advance()
                 return [], InvalidCharError(start_pos, self.pos.get_pos(), invalid_char)
         toks.append(Token(tokens.TT_EOF, start=self.pos))
+        
         return toks, None
 
     def bake_number(self):

@@ -11,7 +11,11 @@ def main():
             _ = input("Kromium >>> ")
             res, err = exe.run("<stdin>", _)
             if err: print(err.as_str())
-            elif res: print(res)
+            elif res: 
+                if len(res.elements) == 1:
+                    print(repr(res.elements[0]))
+                else:
+                    print(repr(res))
             
         except (KeyboardInterrupt, EOFError):
             print('Exiting Kromium...')
