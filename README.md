@@ -1,7 +1,7 @@
 # Kromium
 ### Interpreted statically-typed programming langauge
 
-![kromium-cover](https://github.com/user-attachments/assets/b14fde76-d28e-4ba0-b6b8-e7c792ed863a)
+![kromium-cover-png](https://github.com/user-attachments/assets/b14fde76-d28e-4ba0-b6b8-e7c792ed863a)
 
 ### Kromium features
 - Basic data types : integer, double, string, list, func
@@ -34,8 +34,11 @@ You'll need: `git` and `python` (v3.9 or above)
 | Function  | &lt;function a&gt;| func    |
 
 
+
+
+
 Variable Declaration
-```py
+```c
 new string name = "Bob"
 new int age = 22
 new double gpa = 3.7
@@ -46,11 +49,25 @@ age += 1 ...
 
 ```
 
+**Variables can be constants**
+
+```c
+new const string name = "Bob"
+new const int age = 22
+new const double gpa = 3.7
+new const list grades = ["A", "B" , "D", "B"]
+
+name += " Ross" //Throws an error
+
+```
+
 ***$ = new line***
 
+
+#### Functions
 Function declaration
 
-```py
+```c
 
 func add(a , b) -> a + b
 func sub(c , d) { out(c) $ out(d) $ out(c - d)} 
@@ -67,10 +84,29 @@ Built-in functions:
 - integer - returns the argument is integer (If possible)
 - len - returns the lenght of stringed argument
 
+#### If statments
+
+Syntax : ``` if condition { do something  } elif condition {do something other} else {just do something}```
+
+
+```c
+new int salary = 60000
+
+if salary < 50000 {
+    out("You make less then $50000")
+}
+elif salary > 100000{
+    out("You are rich!!!!!!!!")
+}
+else{
+    out("You are an average person")
+}
+
+```
 
 #### For & While loops
 
-```py 
+```c
 new int i = 0
 for i; i < 5; i += 1 {
     out(i ^ 2)
@@ -78,7 +114,7 @@ for i; i < 5; i += 1 {
 
 ```
 
-```py 
+```c 
 new int i = 0
 while i < 10 {
     i += 1
@@ -102,6 +138,7 @@ while i < 10 {
 | gt                | >           |
 | equals            | =           |
 | double-equals     | ==          |
+| not-equals        | !=          |
 | power             | ** or ^     |
 | and               | '&' or 'and'|
 | or                | "\|" or 'or' |
