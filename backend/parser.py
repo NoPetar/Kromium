@@ -281,7 +281,7 @@ class Parser:
                 InvalidSyntaxError(
                     self.current_tok.start,
                     self.current_tok.end,
-                    "Expected 'new', 'if', 'for', 'while', 'func' int, double, identifier, '+', '-' '(', '[' or 'not'",
+                    "Expected 'new', 'if', 'for', 'while', 'func' int, double, identifier, '+', '-' '(', '[' or 'not'"
                 )
             )
         return res.success(node)
@@ -338,7 +338,7 @@ class Parser:
         res.log_advancement()
         self.advance()
 
-        condition = res.log(self.expr())
+        condition = res.log(self.statement())
         if res.error:
             return res
 
@@ -428,7 +428,7 @@ class Parser:
                         )
                     )
             else:
-                expr = res.log(self.expr())
+                expr = res.log(self.statement())
                 if res.error:
                     return res
                 else_case = (expr, False)
@@ -751,7 +751,7 @@ class Parser:
             if res.error:
                 return res
 
-            return res.success(n.FuncDefNode(var_name, arg_names, exe, False))
+            return res.success(n.FuncDefNode(var_name, arg_names, exe, True))
         elif self.current_tok.type == t.TT_LCRLBRCKT:
             res.log_advancement()
             self.advance()
@@ -776,7 +776,7 @@ class Parser:
             res.log_advancement()
             self.advance()
             
-            return res.success(n.FuncDefNode(var_name, arg_names, exe, True))
+            return res.success(n.FuncDefNode(var_name, arg_names, exe, False))
         else:
             return res.fail(
                 InvalidSyntaxError(
@@ -847,6 +847,7 @@ class Parser:
         if self.current_tok.type == t.TT_RSQRBRCKT:
             res.log_advancement()
             self.advance()
+            return res.success(n.ListNode([], pos_start, self.current_tok.end.get_pos()))
         else:
             element_nodes.append(res.log(self.expr()))
             if res.error:
@@ -888,7 +889,7 @@ class Parser:
         while self.current_tok.type == t.TT_NEWL:
             res.log_advancement()
             self.advance()
-        statement = res.log(self.expr())
+        statement = res.log(self.statement())
         if res.error: return res
         statements.append(statement)
 
@@ -904,7 +905,7 @@ class Parser:
                 more_statements = False
             
             if not more_statements: break
-            statement = res.try_log(self.expr())
+            statement = res.try_log(self.statement())
             if not statement:
                 self.reverse(res.to_reverse_count)
                 more_statements = False
@@ -917,6 +918,42 @@ class Parser:
         self.current_tok.end.get_pos()
         ))
 
+    def statement(self):
+        res = ParseRes()
+        start = self.current_tok.start.get_pos()
+        
+        if self.current_tok.matches(t.TT_KEYWORD, 'return'):
+            res.log_advancement()
+            self.advance()
+            
+            expr = res.try_log(self.expr())
+            
+            if expr == None:
+                self.reverse()
+                
+            return res.success(n.ReturnNode(expr, start, self.current_tok.end.get_pos()))
+        if self.current_tok.matches(t.TT_KEYWORD, 'advance'):
+            res.log_advancement()
+            self.advance()
+
+                
+            return res.success(n.AdvanceNode(start, self.current_tok.end.get_pos()))
+        if self.current_tok.matches(t.TT_KEYWORD, 'break'):
+            res.log_advancement()
+            self.advance()
+
+                
+            return res.success(n.BreakNode(start, self.current_tok.end.get_pos()))
+        
+        expr = res.log(self.expr())
+        if res.error: return res.fail(InvalidSyntaxError(
+            self.current_tok.start,
+            self.current_tok.end,
+            "Expected 'return', 'advance', 'break', 'new', 'if', 'for', 'while', 'func' int, double, identifier, '+', '-' '(', '[' or 'not'"
+        ))
+        
+        return res.success(expr)
+    
     def bin_op(self, func_a, ops, func_b=None):
         if func_b == None:
             func_b = func_a

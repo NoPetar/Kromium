@@ -7,19 +7,20 @@
 - Basic data types : integer, double, string, list, func
 - Unary operations
 - Binary operations
-- Stronglly-typed variables
+- Stronglly-typed variables and constants
 - If/elif/else expressions
-- for and while loops
-- functions and built-in functions
-- multi-line statments
-- file support (*coming soon!*)
+- For and while loops
+- Functions and built-in functions
+- Multi-line statments
+- File support
+- Comments (*coming soon!*)
 
 
 ### How to use Kromium
 
-You'll need: `git` and `python` (v3.9 or above)
+To execute a program, open *kromiumlang.exe* and use the built-in function **run("path/to/file.kr")**
 
-**To open console, run "kromiumlang.exe"**
+
 
 ### Syntax
 
@@ -70,11 +71,17 @@ Function declaration
 ```c
 
 func add(a , b) -> a + b
-func sub(c , d) { out(c) $ out(d) $ out(c - d)} 
+func sub(c , d) { 
+    out(c)  
+    out(d) 
+    return c - d
+} 
 add(3 , 4)
 new func subtract = sub
 
 ```
+
+You can use return in functions
 
 #### Built-ins
 Built-in functions:
@@ -110,6 +117,12 @@ else{
 new int i = 0
 for i; i < 5; i += 1 {
     out(i ^ 2)
+    if i == 2{
+        advance
+    }
+    if i == 4{
+        break
+    }
 }
 
 ```
@@ -119,6 +132,12 @@ new int i = 0
 while i < 10 {
     i += 1
     out(i * 2)
+    if i == 2{
+        advance
+    }
+    if i == 4{
+        break
+    }
 }
 
 ```

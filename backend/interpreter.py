@@ -1,7 +1,8 @@
 from .tokens import *
 from .errs import RunTimeError, typeError
 from typing import Union
-
+import time
+from . import exe
 
 class SymbolTable:
     def __init__(self, parent=None):
@@ -30,7 +31,7 @@ class SymbolTable:
 
         return [value, data_type]
 
-    def set_var(self, name : str, data_type : str, value : any, const : bool):
+    def set_var(self, name: str, data_type: str, value: any, const: bool):
         self.values[name] = value
         self.types[name] = data_type
         self.is_const[name] = const
@@ -60,22 +61,53 @@ class SymbolTable:
 
 
 class RTResult:
+    def __init__(self):
+        self.default()
+
     def log(self, res):
-        if res.error:
-            self.error = res.error
+        self.error = res.error
+        self.func_ret = res.func_ret
+        self.loop_advance = res.loop_advance
+        self.loop_break = res.loop_break
         return res.value
 
     def success(self, value):
+        self.default()
         self.value = value
         return self
 
     def fail(self, error):
+        self.default()
         self.error = error
         return self
 
-    def __init__(self):
+    def default(self):
         self.value = None
         self.error = None
+        self.func_ret = None
+        self.loop_advance = None
+        self.loop_break = None
+
+    def success_ret(self, v):
+        self.default()
+        self.func_ret = v
+        return self
+        """
+        REMINDER -> v stands for value
+        """
+
+    def success_adv(self):
+        self.default()
+        self.loop_advance = True
+        return self
+
+    def success_break(self):
+        self.default()
+        self.loop_break = True
+        return self
+
+    def should_ret(self):
+        return self.error or self.func_ret or self.loop_advance or self.loop_break
 
 
 class Interpreter:
@@ -107,7 +139,7 @@ class Interpreter:
         left = res.log(self.visit(node.leftn, ctx))
         right = res.log(self.visit(node.rightn, ctx))
         err, result = None, None
-        if res.error:
+        if res.should_ret():
             return res
 
         match node.op.value:
@@ -148,7 +180,7 @@ class Interpreter:
     def visit_UnaryOpNode(self, node, ctx):
         res = RTResult()
         num = res.log(self.visit(node.node, ctx))
-        if res.error:
+        if res.should_ret():
             return res
 
         err = None
@@ -164,14 +196,15 @@ class Interpreter:
         res = RTResult()
         var_name = node.var_name_tok.value
         value = ctx.symbol_table.get_var(var_name)[0]
-        
+
         if not value:
             return res.fail(
                 RunTimeError(node.start, node.end, f'"{var_name}" is not defined', ctx)
             )
         try:
             value = value.copy().set_pos(node.start, node.end).set_context(ctx)
-        except: pass
+        except:
+            pass
         return res.success(value)
 
     def visit_VarAssignNode(self, node, ctx):
@@ -191,7 +224,7 @@ class Interpreter:
             case "list":
                 var_type = List
         is_const = node.is_const
-        if res.error:
+        if res.should_ret():
             return res
         if isinstance(value, var_type):
             ctx.symbol_table.set_var(var_name, var_type, value, is_const)
@@ -210,7 +243,7 @@ class Interpreter:
         res = RTResult()
         var_name = node.var_name_tok.value
         value_ = res.log(self.visit(node.value_node, ctx))
-        if res.error:
+        if res.should_ret():
             return res
         if ctx.symbol_table.is_var_const(var_name):
             return res.fail(
@@ -317,22 +350,22 @@ class Interpreter:
 
     def visit_IfNode(self, node, context):
         res = RTResult()
-        
-        for condition, expr, shrn  in node.cases:
+
+        for condition, expr, shrn in node.cases:
             condition_value = res.log(self.visit(condition, context))
-            if res.error:
+            if res.should_ret():
                 return res
 
             if condition_value.is_true():
                 expr_value = res.log(self.visit(expr, context))
-                if res.error:
+                if res.should_ret():
                     return res
                 return res.success(Integer.null if shrn else expr_value)
 
         if node.else_case:
-            expr , shrn = node.else_case
+            expr, shrn = node.else_case
             else_value = res.log(self.visit(expr, context))
-            if res.error:
+            if res.should_ret():
                 return res
             return res.success(Integer.null if shrn else else_value)
 
@@ -345,11 +378,11 @@ class Interpreter:
         start_value = ctx.symbol_table.get_var(node.var_name_tok.value)[0]
 
         end_value = res.log(self.visit(node.end_value_node, ctx))
-        if res.error:
+        if res.should_ret():
             return res
 
         step_value = res.log(self.visit(node.step_value_node, ctx))
-        if res.error:
+        if res.should_ret():
             return res
 
         i = start_value.value
@@ -381,12 +414,27 @@ class Interpreter:
                     i *= step_value.value
                 case "/=":
                     i /= step_value.value
-            elements.append(res.log(self.visit(node.exec_node, ctx)))
-            if res.error:
+            value = res.log(self.visit(node.exec_node, ctx))
+            if (
+                res.should_ret()
+                and res.loop_advance == False
+                and res.loop_break == False
+            ):
+                return res
+            print(res.loop_break)
+            if res.loop_advance:
+                continue
+            if res.loop_break:
+                break
+
+            elements.append(value)
+            if res.should_ret():
                 return res
 
         return res.success(
-            Integer.null if node.should_return_null else List(elements).set_context(ctx).set_pos(node.start, node.end)
+            Integer.null
+            if node.should_return_null
+            else List(elements).set_context(ctx).set_pos(node.start, node.end)
         )
 
     def visit_WhileNode(self, node, ctx):
@@ -394,18 +442,32 @@ class Interpreter:
         elements = []
         while True:
             condition = res.log(self.visit(node.condition, ctx))
-            if res.error:
+            print(condition)
+            if res.should_ret():
                 return res
 
             if not condition.is_true():
                 break
 
-            elements.append(res.log(self.visit(node.exec_node, ctx)))
-            if res.error:
+            value = res.log(self.visit(node.exec_node, ctx))
+            if (
+                res.should_ret()
+                and res.loop_advance == False
+                and res.loop_break == False
+            ):
                 return res
 
+            if res.loop_advance:
+                continue
+            if res.loop_break:
+                break
+
+            elements.append(value)
+
         return res.success(
-            Integer.null if node.should_return_null else List(elements).set_context(ctx).set_pos(node.start, node.end)
+            Integer.null
+            if node.should_return_null
+            else List(elements).set_context(ctx).set_pos(node.start, node.end)
         )
 
     def visit_StringNode(self, node, ctx):
@@ -420,7 +482,7 @@ class Interpreter:
         body_node = node.exec_code
         arg_names = [arg_name.value for arg_name in node.arg_name_toks]
         func_value = (
-            Function(func_name, body_node, arg_names, node.should_return_null)
+            Function(func_name, body_node, arg_names, node.auto_ret)
             .set_context(context)
             .set_pos(node.start, node.end)
         )
@@ -435,21 +497,21 @@ class Interpreter:
         args = []
 
         value_to_call = res.log(self.visit(node.caller, context))
-        if res.error:
+        if res.should_ret():
             return res
-        
+
         value_to_call = value_to_call.copy().set_pos(node.start, node.end)
 
         for arg_node in node.arg_nodes:
             args.append(res.log(self.visit(arg_node, context)))
-            if res.error:
+            if res.should_ret():
                 return res
 
         return_value = res.log(value_to_call.execute(args))
-        if res.error:
+        if res.should_ret():
             return res
-        
-        if hasattr(value_to_call, 'copy'):
+
+        if hasattr(value_to_call, "copy"):
             value_to_call = value_to_call.copy().set_pos(node.start, node.end)
         else:
             return res.fail(
@@ -464,14 +526,30 @@ class Interpreter:
         els = []
         for n in node.element_nodes:
             els.append(res.log(self.visit(n, ctx)))
-            if res.error:
+            if res.should_ret():
                 return res
         return res.success(List(els).set_context(ctx).set_pos(node.start, node.end))
 
+    def visit_ReturnNode(self, node, ctx):
+        res = RTResult()
+        value = Integer.null
+        if node.node:
+            value = res.log(self.visit(node.node, ctx))
+            if res.should_ret():
+                return res
+            
+        return res.success_ret(value)
+    
+    def visit_AdvanceNode(self, node, ctx):
+        return RTResult().success_adv()
+    
+    def visit_BreakNode(self, node, ctx):
+        return RTResult().success_break()
+    
     def visit_NoneType(self, node, ctx):
         return RTResult().success(NoneType())
-    
-    
+
+
 class Value:
     def __init__(self):
         self.set_pos()
@@ -552,7 +630,7 @@ class Integer(Value):
             self.value = int(value)
         except:
             self.value = value.value
-        self.str_type = 'int'
+        self.str_type = "int"
 
     def addition(self, other):
         if isinstance(other, Union[Integer, Double]):
@@ -699,13 +777,13 @@ class Integer(Value):
     def __repr__(self):
         return str(self.value)
 
-    
+
 class Double(Value):
     def __init__(self, value):
         super().__init__()
         self.value = float(value)
-        self.str_type = 'double'
-        
+        self.str_type = "double"
+
     def addition(self, other):
         if isinstance(other, Union[Integer, Double]):
             return Double(self.value + other.value).set_context(self.context), None
@@ -827,7 +905,7 @@ class String(Value):
     def __init__(self, value):
         super().__init__()
         self.value = value
-        self.str_type = 'string'
+        self.str_type = "string"
 
     def addition(self, other):
         if isinstance(other, String):
@@ -876,7 +954,8 @@ class List(Value):
     def __init__(self, elements):
         super().__init__()
         self.elements = elements
-        self.str_type = 'list'
+        self.str_type = "list"
+
     def addition(self, other):
         new = self.copy()
         new.elements.append(other)
@@ -932,7 +1011,7 @@ class BaseFunc(Value):
         self.context = None
         self.pos_start = None
         self.pos_end = None
-        
+
     def generate_ctx(self):
         ctx = Context(self.name, self.context, self.pos_start)
         ctx.symbol_table = SymbolTable(ctx.parent.symbol_table)
@@ -972,37 +1051,37 @@ class BaseFunc(Value):
         res = RTResult()
 
         res.log(self.check_args(arg_names, args))
-        if res.error:
+        if res.should_ret():
             return res
         self.populate_args(arg_names, args, ctx)
         return res.success(None)
 
 
 class Function(BaseFunc):
-    def __init__(self, name, exec_code, args, should_return_null):
+    def __init__(self, name, exec_code, args, auto_ret):
         super().__init__(name)
         self.exec_code = exec_code
         self.args = args
-        self.shrn = should_return_null
+        self.auto_ret = auto_ret
 
     def execute(self, args):
         res = RTResult()
         itr = Interpreter()
         ctx = self.generate_ctx()
-        
 
         res.log(self.check_and_populate(self.args, args, ctx))
-        if res.error:
+        if res.should_ret():
             return res
 
         value = res.log(itr.visit(self.exec_code, ctx))
-        if res.error:
+        if res.should_ret() and res.func_ret == None:
             return res
-        return res.success(Integer.null if self.shrn else value)
-    
-    
+
+        ret_val = (value if self.auto_ret else None) or res.func_ret or Integer.null
+        return res.success(ret_val)
+
     def copy(self):
-        copy = Function(self.name, self.exec_code, self.args, self.shrn)
+        copy = Function(self.name, self.exec_code, self.args, self.auto_ret)
         copy.set_context(self.context)
         copy.set_pos(self.pos_start, self.pos_end)
         return copy
@@ -1010,68 +1089,116 @@ class Function(BaseFunc):
     def __repr__(self):
         return f"<function {self.name}>"
 
+
 class BuiltInFunc(BaseFunc):
     def __init__(self, name):
         super().__init__(name)
+
     def execute(self, args):
         res = RTResult()
         exec_ctx = self.generate_ctx()
 
-        method_name = f'_{self.name}_'
+        method_name = f"_{self.name}_"
         method = getattr(self, method_name, self.no_visit_method)
 
         res.log(self.check_and_populate(method.arg_names, args, exec_ctx))
-        if res.error: return res
+        if res.should_ret():
+            return res
 
         return_value = res.log(method(exec_ctx))
-        if res.error: return res
+        if res.should_ret():
+            return res
         return res.success(return_value)
-  
+
     def no_visit_method(self, node, context):
-        raise Exception(f'No _{self.name}_ method defined')
-    
-    
+        raise Exception(f"No _{self.name}_ method defined")
+
     def copy(self):
         copy_ = BuiltInFunc(self.name)
         copy_.set_context(self.context)
         copy_.set_pos(self.pos_start, self.pos_end)
         return copy_
+
     def __repr__(self):
-        return f'<built-in function {self.name}>'
+        return f"<built-in function {self.name}>"
 
     def _out_(self, exec_ctx):
-        print(exec_ctx.symbol_table.get_var('value')[0])    
+        print(exec_ctx.symbol_table.get_var("value")[0])
         return RTResult().success(Integer.null)
+
     def _input_(self, exec_ctx):
         inputed = input()
         return RTResult().success(String(inputed))
+
     def _integer_(self, exec_ctx):
-        arg = exec_ctx.symbol_table.get_var('value')[0]
+        arg = exec_ctx.symbol_table.get_var("value")[0]
         arg = Integer(arg)
         return RTResult().success(arg)
-        
-    
+
     def _typeof_(self, exec_ctx):
-        return RTResult().success(exec_ctx.symbol_table.get_var('value')[0].str_type)
-        
+        return RTResult().success(exec_ctx.symbol_table.get_var("value")[0].str_type)
+
     def _len_(self, exec_ctx):
-        v = exec_ctx.symbol_table.get_var('value')[0]
-        return RTResult().success(len(str(v.value)))   
+        v = exec_ctx.symbol_table.get_var("value")[0]
+        return RTResult().success(len(str(v.value)))
+
+    def _awaits_(self, exec_ctx):
+        s = exec_ctx.symbol_table.get_var("miliseconds")[0]
+        time.sleep(s.value / 1000)
+        return RTResult().success(Integer.null)
+
+    def _run_(self, exec_ctx):
+        fn = exec_ctx.symbol_table.get_var("fn")
         
-    _out_.arg_names = ['value']
+        if not isinstance(fn[0], String):
+            return RTResult().fail(RunTimeError(
+                self.pos_start, self.pos_end,
+                "Argument must be string",
+                exec_ctx
+            ))
+
+        fn = fn[0].value
+
+        try:
+            with open(fn, "r") as f:
+                script = f.read()
+        except Exception as e:
+            return RTResult().fail(RunTimeError(
+                self.pos_start, self.pos_end,
+                f"Failed to load script \"{fn}\"\n" + str(e),
+                exec_ctx
+            ))
+
+        _, error = exe.run(fn, script)
+        
+        if error:
+            return RTResult().fail(RunTimeError(
+                self.pos_start, self.pos_end,
+                f"Failed to finish executing script \"{fn}\"\n" +
+                error.as_str(),
+                exec_ctx
+        ))
+
+        return RTResult().success(Integer.null)
+    
+    _out_.arg_names = ["value"]
     _input_.arg_names = []
-    _integer_.arg_names = ['value']
-    _typeof_.arg_names = ['value']
-    _len_.arg_names = ['value']
+    _integer_.arg_names = ["value"]
+    _typeof_.arg_names = ["value"]
+    _len_.arg_names = ["value"]
+    _awaits_.arg_names = ["miliseconds"]
+    _run_.arg_names = ["fn"]
 
 
 class NoneType(Value):
     def __init__(self):
-        self.value = '\n'
+        self.value = "\n"
         self.error = None
+
     def __repr__(self):
         return str(Integer.null)
-    
+
+
 class Context:
     def __init__(self, display_name, parent=None, parent_entry_pos=None):
         self.display_name = display_name
@@ -1085,6 +1212,8 @@ BuiltInFunc.input = BuiltInFunc("input")
 BuiltInFunc.integer = BuiltInFunc("integer")
 BuiltInFunc.typeof = BuiltInFunc("typeof")
 BuiltInFunc.len = BuiltInFunc("len")
+BuiltInFunc.awaits = BuiltInFunc("awaits")
+BuiltInFunc.run = BuiltInFunc("run")
 
 
 Integer.null = Integer(0)

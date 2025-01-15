@@ -29,7 +29,7 @@ TT_ARROW = "TT_ARROW"  # ->
 TT_COMMA = "TT_COMMA"  # ,
 TT_LSQRBRCKT = "TT_LSQRBRCKT"
 TT_RSQRBRCKT = "TT_RSQRBRCKT"
-TT_NEWL = 'TT_NEWL'
+TT_NEWL = "TT_NEWL"
 TT_EOF = "TT_EOF"
 
 ###########################################
@@ -40,6 +40,20 @@ TT_KEYWORD = "TT_KEYWORD"
 
 ###########################################
 
-KEYWORDS = ["new", "not", "and", "or", "if", "elif", "else", "const", "for", "while", "func"]
+KEYWORDS = [
+    "new",
+    "not",
+    "and",
+    "or",
+    "if",
+    "elif",
+    "else",
+    "const",
+    "for",
+    "while",
+    "func",
+    "return",
+    "break",
+    "advance"
+]
 DATA_TYPES = ["int", "double", "string", "func", "list"]
-

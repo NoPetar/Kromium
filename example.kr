@@ -1,0 +1,10 @@
+new int num = 0
+while num != 3{
+    out("Enter a number between 1 - 10: ")
+    new int num = integer(input())
+    if num == 3{
+        out("Nice job!!")
+        break
+    }
+    out("Wrong! Try again!")
+}

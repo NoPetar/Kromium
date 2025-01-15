@@ -4,7 +4,6 @@ import platform
 import sys
 
 def main():
-    
     print(f'Kromium ({__version__}) running on {sys.platform}({platform.system()})')
     while True:
         try:

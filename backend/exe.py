@@ -1,6 +1,7 @@
 from . import lexer, parser, interpreter
 import os
 
+
 global_symbol_table = interpreter.SymbolTable()
 global_symbol_table.set_var("null", interpreter.Integer, interpreter.Integer.null, True)
 global_symbol_table.set_var("none", interpreter.Integer, interpreter.Integer.null, True)
@@ -14,7 +15,8 @@ global_symbol_table.set_var("input", interpreter.BuiltInFunc, interpreter.BuiltI
 global_symbol_table.set_var("integer", interpreter.BuiltInFunc, interpreter.BuiltInFunc.integer, True)
 global_symbol_table.set_var("typeof", interpreter.BuiltInFunc, interpreter.BuiltInFunc.typeof, True)
 global_symbol_table.set_var("len", interpreter.BuiltInFunc, interpreter.BuiltInFunc.len, True)
-
+global_symbol_table.set_var("await", interpreter.BuiltInFunc, interpreter.BuiltInFunc.awaits , True)
+global_symbol_table.set_var("run", interpreter.BuiltInFunc, interpreter.BuiltInFunc.run , True)
 os.system("cls")
 
 def run(fn, code):
