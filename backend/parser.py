@@ -945,6 +945,7 @@ class Parser:
                 
             return res.success(n.BreakNode(start, self.current_tok.end.get_pos()))
         
+        
         expr = res.log(self.expr())
         if res.error: return res.fail(InvalidSyntaxError(
             self.current_tok.start,

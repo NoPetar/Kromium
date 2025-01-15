@@ -1,4 +1,4 @@
-new int num = 0
+new int num = 0 ~dsd~
 while num != 3{
     out("Enter a number between 1 - 10: ")
     new int num = integer(input())

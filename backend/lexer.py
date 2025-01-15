@@ -33,6 +33,8 @@ class Lexer:
         while self.current_char != None:
             if self.current_char == " ":
                 self.advance()
+            elif self.current_char == "~":
+                self.make_comment()
             elif self.current_char in ascii_letters:
                 toks.append(self.make_identifier())
                 self.advance()
@@ -170,6 +172,17 @@ class Lexer:
                 data_type = "double"
         return Token(tok_type, pos_start, pos_end, data_type, as_str)
 
+    def make_comment(self):
+        start = self.pos.get_pos()
+        
+        self.advance()
+        
+        while self.current_char != '~':
+            self.advance()
+            if self.current_char == '~':
+                self.advance()
+                break
+    
     def make_not_eq(self):
         pos_start = self.pos.get_pos()
         self.advance()

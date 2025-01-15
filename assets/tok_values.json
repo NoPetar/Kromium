@@ -26,6 +26,6 @@
     "TT_COMMA" : ",",
     "TT_ARROW" : "->",
     "TT_LSQRBRCKT" : "[",
-    "TT_RSQRBRCKT" : "]"
-    
+    "TT_RSQRBRCKT" : "]",
+    "TT_TILDE" : "~"
 }

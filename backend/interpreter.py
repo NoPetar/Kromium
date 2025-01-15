@@ -919,6 +919,12 @@ class String(Value):
         else:
             return None, Value.illegal_operation(self, other)
 
+    def division(self, other):
+        if isinstance(other, Integer):
+            return String(self.value[ other.value]).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, other)
+    
     def deq(self, other):
         if isinstance(other, String):
             return (

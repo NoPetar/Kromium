@@ -30,6 +30,7 @@ TT_COMMA = "TT_COMMA"  # ,
 TT_LSQRBRCKT = "TT_LSQRBRCKT"
 TT_RSQRBRCKT = "TT_RSQRBRCKT"
 TT_NEWL = "TT_NEWL"
+TT_TILDE = "TT_TILDE"
 TT_EOF = "TT_EOF"
 
 ###########################################
