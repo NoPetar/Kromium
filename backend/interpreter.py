@@ -1,9 +1,11 @@
 from .tokens import *
 from .errs import RunTimeError, typeError
+from . import exe
 from typing import Union
+from numpy import float64
 import time
 import os
-from . import exe
+
 
 class SymbolTable:
     def __init__(self, parent=None):
@@ -28,7 +30,7 @@ class SymbolTable:
                         return self.parent.get_var(name)
         except TypeError:
             value, data_type = None, None
-            return [value, data_type]
+            
 
         return [value, data_type]
 
@@ -45,7 +47,7 @@ class SymbolTable:
                 RunTimeError(
                     node.start,
                     node.end,
-                    f"Variable {name} cannot be reassigned, because it is a constant",
+                    f"Cannot reassign a constant",
                     ctx,
                 )
             )
@@ -712,7 +714,7 @@ class Integer(Value):
         if isinstance(other, Union[Integer, Double]):
             return (
                 (Integer(self.value == other.value).set_context(self.context), None)
-                if float(self.value == other.value) == int(self.value == other.value)
+                if float64(self.value == other.value) == int(self.value == other.value)
                 else (Double(self.value == other.value).set_context(self.context), None)
             )
         else:
@@ -800,7 +802,7 @@ class Integer(Value):
 class Double(Value):
     def __init__(self, value):
         super().__init__()
-        self.value = float(value)
+        self.value = float64(value)
         self.str_type = "double"
 
     def addition(self, other):

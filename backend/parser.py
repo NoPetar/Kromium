@@ -1,6 +1,7 @@
+from numpy import float64
 from . import tokens as t
 from . import nodes as n
-from .errs import InvalidSyntaxError, typeError
+from .errs import InvalidSyntaxError
 from .nodes import BinOpNode
 
 
@@ -82,7 +83,7 @@ class Parser:
             if isinstance(tok.value, int):
 
                 return res.success(n.IntegerNode(tok))
-            elif isinstance(tok.value, float):
+            elif isinstance(tok.value, float64):
                 return res.success(n.DoubleNode(tok))
 
         if tok.type in (t.TT_STRING):

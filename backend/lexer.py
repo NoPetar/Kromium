@@ -3,7 +3,7 @@ from .token import Token
 from string import digits, ascii_letters
 from .errs import *
 from .pos import Position
-
+from numpy import float64
 
 LETTERSDIGITS = digits + ascii_letters
 
@@ -141,7 +141,7 @@ class Lexer:
                 start_pos,
                 self.pos.get_pos(),
                 "double",
-                float(number_as_str),
+                float64(number_as_str),
             )
         else:
             return Token(

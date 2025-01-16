@@ -9,7 +9,7 @@ class BaseError:
         self.end = end
 
     def as_str(self):
-        return f"\n{self.name}: {self.details}\nFile: {self.start.fn}\nLine: {self.start.line + 1}\n\n{self.start.line + 1}. {string_with_arrows(self.start.fcnt, self.start, self.end)}"
+        return f"\n{self.name}: {self.details}\nFile: {self.start.fn}\nLine: {self.start.line + 1} {string_with_arrows(self.start.fcnt, self.start, self.end)}"
 
 
 class InvalidCharError(BaseError):
@@ -36,7 +36,7 @@ class RunTimeError(BaseError):
             ctx = ctx.parent
         return '\nTraceback (most recent call last):\n' + res
     def as_str(self):
-        return self.generate_traceback() + f"\n{self.name}: {self.details}\n\n{self.start.line + 1}. {string_with_arrows(self.start.fcnt, self.start, self.end)}"
+        return self.generate_traceback() + f"\n{self.name}: {self.details}\n\n{string_with_arrows(self.start.fcnt, self.start, self.end)}"
 
 class ExpectedCharError(BaseError):
     def __init__(self, start, end, details):
