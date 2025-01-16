@@ -13,6 +13,7 @@
 - Functions and built-in functions
 - Multi-line statments
 - File support
+- Importing built-in libraries
 - Comments 
 
 
@@ -161,3 +162,16 @@ while i < 10 {
 | power             | ** or ^     |
 | and               | '&' or 'and'|
 | or                | "\|" or 'or' |
+
+#### Importing 
+
+To import a built in library, use *include* keyword followed by a string with a *#* in it's beggining
+
+```ruby
+include "#Math.kr"
+```
+
+Current libraries:
+- Math (in work)
+- String (*coming soon!*)
+- Kraphics(*coming soon!*)

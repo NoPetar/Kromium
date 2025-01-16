@@ -191,3 +191,9 @@ class BreakNode:
     def __init__(self, start, end):
         self.start = start
         self.end = end
+
+class IncludeNode:
+    def __init__(self, node, start, end):
+        self.node = node
+        self.start = start
+        self.end = end

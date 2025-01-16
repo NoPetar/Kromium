@@ -945,6 +945,13 @@ class Parser:
                 
             return res.success(n.BreakNode(start, self.current_tok.end.get_pos()))
         
+        if self.current_tok.matches(t.TT_KEYWORD, 'include'):
+            res.log_advancement()
+            self.advance()
+            
+            str_node = res.log(self.quark())
+            
+            return res.success(n.IncludeNode(str_node, start, self.current_tok.end.get_pos()))
         
         expr = res.log(self.expr())
         if res.error: return res.fail(InvalidSyntaxError(

@@ -2,6 +2,7 @@ from .tokens import *
 from .errs import RunTimeError, typeError
 from typing import Union
 import time
+import os
 from . import exe
 
 class SymbolTable:
@@ -545,6 +546,24 @@ class Interpreter:
     
     def visit_BreakNode(self, node, ctx):
         return RTResult().success_break()
+    
+    def visit_IncludeNode(self, node, ctx):
+        res = RTResult()
+        fn = node.node.tok
+        
+        if '#' in fn.value:
+            fn.value = fn.value.replace('#', '')
+            if fn.value == 'math.kr':
+                path = 'assets/libraries/math/'
+                files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path , f))]
+                
+                for file in files:
+                    with open(f'{path}{file}', 'r') as f:
+                        code = f.read()
+                        f.close()
+                    r , e = exe.run(file, code)
+                    
+        return res.success(Integer.null)
     
     def visit_NoneType(self, node, ctx):
         return RTResult().success(NoneType())
@@ -1133,7 +1152,8 @@ class BuiltInFunc(BaseFunc):
         return RTResult().success(Integer.null)
 
     def _input_(self, exec_ctx):
-        inputed = input()
+        arg = exec_ctx.symbol_table.get_var("text")[0]
+        inputed = input(f'{arg}')
         return RTResult().success(String(inputed))
 
     def _integer_(self, exec_ctx):
@@ -1188,7 +1208,7 @@ class BuiltInFunc(BaseFunc):
         return RTResult().success(Integer.null)
     
     _out_.arg_names = ["value"]
-    _input_.arg_names = []
+    _input_.arg_names = ["text"]
     _integer_.arg_names = ["value"]
     _typeof_.arg_names = ["value"]
     _len_.arg_names = ["value"]

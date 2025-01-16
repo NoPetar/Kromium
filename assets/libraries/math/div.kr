@@ -1,0 +1,3 @@
+func div(a, b){
+    returns a / b
+}

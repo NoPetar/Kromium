@@ -55,6 +55,7 @@ KEYWORDS = [
     "func",
     "return",
     "break",
-    "advance"
+    "advance",
+    "include"
 ]
 DATA_TYPES = ["int", "double", "string", "func", "list"]
