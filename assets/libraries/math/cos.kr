@@ -1,0 +1,12 @@
+include "assets/libraries/math/fact.kr"
+
+func cos(x){
+    new double cosx = 0
+    new int sign = 1
+    new int i = 0
+    for i; i <= 15; i += 1{
+        cosx += sign * x ** (2 * i) / fact(2 * i)
+        sign *= -1
+    }
+    return cosx
+}

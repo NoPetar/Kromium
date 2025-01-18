@@ -1,0 +1,11 @@
+func round(a, ndigits){
+    new int m = 10 ^ ndigits
+    new double adjusted = a * m
+    new double r = 0.0
+    if adjusted >= 0{
+        r = integer(adjusted + 0.5)
+    } else {
+        r = integer(adjusted - 0.5)
+    }
+    return r / m
+}

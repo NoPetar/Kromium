@@ -9,7 +9,7 @@ class BaseError:
         self.end = end
 
     def as_str(self):
-        return f"\n{self.name}: {self.details}\nFile: {self.start.fn}\nLine: {self.start.line + 1} {string_with_arrows(self.start.fcnt, self.start, self.end)}"
+        return f"\n{self.name}: {self.details}\nFile: {self.start.fn}\nLine: {self.start.line + 1}\n\n {string_with_arrows(self.start.fcnt, self.start, self.end)}"
 
 
 class InvalidCharError(BaseError):

@@ -1,0 +1,17 @@
+include "assets/libraries/math/abs.kr"
+include "assets/libraries/math/round.kr"
+
+func sqrt(x){
+    if x == 0{
+        return 0.0
+    }
+    new double g = x / 2
+    while 1 == 1{
+        new double n = 0.5 * (g + x / g)
+        if abs(g - n) < 0.00000001{
+            break
+        }
+        g = n
+    }
+    return round(g, 11)
+}

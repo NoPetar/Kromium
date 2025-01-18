@@ -60,7 +60,10 @@ class SymbolTable:
         del self.is_const[name]
 
     def is_var_const(self, name):
-        return self.is_const[name]
+        try:
+            return self.is_const[name]
+        except KeyError:
+            return RTResult().fail("Variable is not defined!")
 
 
 class RTResult:
@@ -144,7 +147,10 @@ class Interpreter:
         err, result = None, None
         if res.should_ret():
             return res
-
+        if left == None:
+            return res.fail(RunTimeError(node.start, node.end, "Undifined variable detected in binary operaion", ctx))
+        if right == None:
+            return res.fail(RunTimeError(node.start, node.end, "Undifined variable detected in binary operaion", ctx))
         match node.op.value:
             case "+":
                 result, err = left.addition(right)
@@ -233,13 +239,17 @@ class Interpreter:
             ctx.symbol_table.set_var(var_name, var_type, value, is_const)
             return res.success(value)
         else:
-            return res.fail(
-                typeError(
-                    node.start,
-                    node.end,
-                    f"Cannot convert type '{type(value).__name__}' to '{var_type.__name__}''",
+            if var_type == Double and isinstance(value, Integer):
+                value = Double(value.value)
+                ctx.symbol_table.set_var(var_name, var_type, value, is_const)
+                return res.success(value) 
+                return res.fail(
+                    typeError(
+                        node.start,
+                        node.end,
+                        f"Cannot convert type '{type(value).__name__}' to '{var_type.__name__}''",
+                    )
                 )
-            )
 
     def visit_VarReAssignNode(self, node, ctx):
 
@@ -262,88 +272,90 @@ class Interpreter:
             case "=":
                 ctx.symbol_table.re_assign_var(var_name, value_, node, ctx, res)
             case "+":
-                if ctx.symbol_table.get_var(var_name)[1] == Integer:
+                if ctx.symbol_table.get_var(var_name)[1] == Integer or isinstance(ctx.symbol_table.get_var(var_name)[0], Integer):
                     r = Integer(
                         ctx.symbol_table.get_var(var_name)[0].value + value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == Double:
+                elif ctx.symbol_table.get_var(var_name)[1] == Double or isinstance(ctx.symbol_table.get_var(var_name)[0], Double):
                     r = Double(
                         ctx.symbol_table.get_var(var_name)[0].value + value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == List:
+                elif ctx.symbol_table.get_var(var_name)[1] == List or isinstance(ctx.symbol_table.get_var(var_name)[0], List):
                     new = ctx.symbol_table.get_var(var_name)[0].elements
                     new.append(value_.value)
                     r = List(new)
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
             case "-":
-                if ctx.symbol_table.get_var(var_name)[1] == Integer:
+                if ctx.symbol_table.get_var(var_name)[1] == Integer or isinstance(ctx.symbol_table.get_var(var_name)[0], Integer):
                     r = Integer(
                         ctx.symbol_table.get_var(var_name)[0].value - value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == Double:
+                elif ctx.symbol_table.get_var(var_name)[1] == Double or isinstance(ctx.symbol_table.get_var(var_name)[0], Double):
                     r = Double(
                         ctx.symbol_table.get_var(var_name)[0].value - value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == String:
+                elif ctx.symbol_table.get_var(var_name)[1] == String or isinstance(ctx.symbol_table.get_var(var_name)[0], String):
                     r = String(
                         ctx.symbol_table.get_var(var_name)[0].value + value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == List:
+                elif ctx.symbol_table.get_var(var_name)[1] == List or isinstance(ctx.symbol_table.get_var(var_name)[0], List):
                     new = ctx.symbol_table.get_var(var_name)[0].elements
                     new.pop(value_.value)
                     r = List(new)
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
             case "*":
-                if ctx.symbol_table.get_var(var_name)[1] == Integer:
+                if ctx.symbol_table.get_var(var_name)[1] == Integer or isinstance(ctx.symbol_table.get_var(var_name)[0], Integer):
                     r = Integer(
                         ctx.symbol_table.get_var(var_name)[0].value * value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == Double:
+                elif ctx.symbol_table.get_var(var_name)[1] == Double or isinstance(ctx.symbol_table.get_var(var_name)[0], Double):
                     r = Double(
                         ctx.symbol_table.get_var(var_name)[0].value * value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == String:
+                elif ctx.symbol_table.get_var(var_name)[1] == String or isinstance(ctx.symbol_table.get_var(var_name)[0], String):
                     r = String(
                         ctx.symbol_table.get_var(var_name)[0].value * value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == List:
+                elif ctx.symbol_table.get_var(var_name)[1] == List or isinstance(ctx.symbol_table.get_var(var_name)[0], List):
                     new = ctx.symbol_table.get_var(var_name)[0].elements
                     new.extend(value_.elements)
                     r = List(new)
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
             case "/":
-                if ctx.symbol_table.get_var(var_name)[1] == Integer:
+                if ctx.symbol_table.get_var(var_name)[1] == Integer or isinstance(ctx.symbol_table.get_var(var_name)[0], Integer):
                     r = Integer(
                         ctx.symbol_table.get_var(var_name)[0].value / value_.value
                     )
+                    
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == Double:
+                elif ctx.symbol_table.get_var(var_name)[1] == Double or isinstance(ctx.symbol_table.get_var(var_name)[0], Double):
+                    
                     r = Double(
                         ctx.symbol_table.get_var(var_name)[0].value / value_.value
                     )
                     ctx.symbol_table.re_assign_var(var_name, r, node, ctx, res)
                     value_ = r
-                elif ctx.symbol_table.get_var(var_name)[1] == List:
+                elif ctx.symbol_table.get_var(var_name)[1] == List or isinstance(ctx.symbol_table.get_var(var_name)[0], List):
                     new = ctx.symbol_table.get_var(var_name)[0].elements
                     new = new[value_.value]
                     ctx.symbol_table.re_assign_var(var_name, new, node, ctx, res)
@@ -423,8 +435,7 @@ class Interpreter:
                 and res.loop_advance == False
                 and res.loop_break == False
             ):
-                return res
-            print(res.loop_break)
+                return res 
             if res.loop_advance:
                 continue
             if res.loop_break:
@@ -445,7 +456,6 @@ class Interpreter:
         elements = []
         while True:
             condition = res.log(self.visit(node.condition, ctx))
-            print(condition)
             if res.should_ret():
                 return res
 
@@ -555,16 +565,19 @@ class Interpreter:
         
         if '#' in fn.value:
             fn.value = fn.value.replace('#', '')
-            if fn.value == 'math.kr':
-                path = 'assets/libraries/math/'
-                files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path , f))]
-                
-                for file in files:
-                    with open(f'{path}{file}', 'r') as f:
-                        code = f.read()
-                        f.close()
-                    r , e = exe.run(file, code)
+            directory = fn.value.split('.')[0]
+            path = f'assets/libraries/{directory}/{fn.value}'
+            with open(f'{path}', 'r') as f:
+                code = f.read()
+                f.close()
+            r , e = exe.run(path, code)
                     
+        else:
+            with open(f'{fn.value}', 'r') as fl:
+                code = fl.read()
+                fl.close()
+            r , e = exe.run(fn.value.split('/')[-1], code)
+            if e: return res.fail(e)    
         return res.success(Integer.null)
     
     def visit_NoneType(self, node, ctx):
@@ -649,8 +662,8 @@ class Integer(Value):
         super().__init__()
         try:
             self.value = int(value)
-        except:
-            self.value = value.value
+        except TypeError:
+            self.value = int(value.value)
         self.str_type = "int"
 
     def addition(self, other):

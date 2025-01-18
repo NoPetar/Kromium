@@ -1,3 +1,5 @@
 include "#math.kr"
 
-sqrt(3, 0.0001)
+new double g = abs(4)
+
+out(g)

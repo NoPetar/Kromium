@@ -1,0 +1,9 @@
+func log2(n){
+    new double apprx = 0
+    while n > 1{
+        n /= 2
+        
+        apprx += 1
+    }
+    return apprx
+}

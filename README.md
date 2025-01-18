@@ -172,7 +172,7 @@ include "#Math.kr"
 ```
 
 Current libraries:
-- Math (in work)
+- Math: abs, add, cos, div, fact, floor, log2, mul, roof, round, sin, sqrt, sub
 - String (*coming soon!*)
 - Kraphics(*coming soon!*)
 

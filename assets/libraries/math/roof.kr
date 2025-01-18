@@ -1,0 +1,3 @@
+func roof(x){
+    return integer(x) + 1.0
+}
