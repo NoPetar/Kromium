@@ -3,7 +3,7 @@ from . import tokens as t
 from . import nodes as n
 from .errs import InvalidSyntaxError
 from .nodes import BinOpNode
-
+from .token import Token
 
 class ParseRes:
     def __init__(self):
@@ -248,8 +248,29 @@ class Parser:
                         "Expected identifier",
                     )
                 )
+            
+            
+            if self.current_tok.type == t.TT_EQ:
+                res.log_advancement()
+                self.advance()
+                expr_ = res.log(self.expr())
+                if res.error:
+                    return res
 
-            if self.current_tok.type != t.TT_EQ:
+                return res.success(n.VarAssignNode(var_name, var_type, expr_, is_const))
+            elif self.current_tok.type == t.TT_SEMICOLON:
+                if var_type.value == 'int':
+                    expr_ = n.IntegerNode(Token(t.TT_INT, self.current_tok.start.get_pos(), self.current_tok.end.get_pos(), "int", 0))
+                elif var_type.value == 'double':
+                    expr_ = n.DoubleNode(Token(t.TT_DOUBLE, self.current_tok.start.get_pos(), self.current_tok.end.get_pos(), "double", 0))
+                elif var_type.value == 'string':
+                    expr_ = n.StringNode(Token(t.TT_DOUBLE, self.current_tok.start.get_pos(), self.current_tok.end.get_pos(), "string", ""))
+                elif var_type.value == 'list':
+                    expr_ = n.ListNode([], self.current_tok.start.get_pos(), self.current_tok.end.get_pos())
+                else:
+                    return res.fail(InvalidSyntaxError(var_type.start, var_type.end, "Invalid expression"))
+                return res.success(n.VarAssignNode(var_name, var_type, expr_, is_const))
+            else:
                 return res.fail(
                     InvalidSyntaxError(
                         self.current_tok.start,
@@ -257,13 +278,6 @@ class Parser:
                         f'Expected "=", but got {self.current_tok.value}',
                     )
                 )
-            res.log_advancement()
-            self.advance()
-            expr_ = res.log(self.expr())
-            if res.error:
-                return res
-
-            return res.success(n.VarAssignNode(var_name, var_type, expr_, is_const))
         
 
         node = res.log(
