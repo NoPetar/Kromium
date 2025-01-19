@@ -1,0 +1,17 @@
+func strsplit(x, symbol){
+    new int l = len(x)
+    new int i = 0
+    new string e = ""
+    new list r = []
+
+    for i;i < l;i += 1 {
+        if x / i == symbol{
+            r += e
+            e = ""
+        } else {
+            e += x / i
+        }
+        return r
+    }
+
+}

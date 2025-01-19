@@ -17,6 +17,7 @@ global_symbol_table.set_var("typeof", interpreter.BuiltInFunc, interpreter.Built
 global_symbol_table.set_var("len", interpreter.BuiltInFunc, interpreter.BuiltInFunc.len, True)
 global_symbol_table.set_var("await", interpreter.BuiltInFunc, interpreter.BuiltInFunc.awaits , True)
 global_symbol_table.set_var("run", interpreter.BuiltInFunc, interpreter.BuiltInFunc.run , True)
+global_symbol_table.set_var("str", interpreter.BuiltInFunc, interpreter.BuiltInFunc.str , True)
 os.system("cls")
 
 def run(fn, code):

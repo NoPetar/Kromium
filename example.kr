@@ -1,5 +1,5 @@
-include "#math.kr"
+include "#string.kr"
 
-new double g = abs(4)
+new list g = strsplit("sasa", "a")
 
 out(g)

@@ -1,7 +1,7 @@
 # Kromium
 ### Interpreted statically-typed programming langauge
 
-![kromium-cover-png](https://github.com/user-attachments/assets/b14fde76-d28e-4ba0-b6b8-e7c792ed863a)
+![kromium-cover-png](https://github.com/user-attachments/assets/2067e776-a0ac-4f0c-b352-85b937979e56)
 
 ### Kromium features
 - Basic data types : integer, double, string, list, func

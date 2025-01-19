@@ -566,12 +566,12 @@ class Interpreter:
         if '#' in fn.value:
             fn.value = fn.value.replace('#', '')
             directory = fn.value.split('.')[0]
-            path = f'assets/libraries/{directory}/{fn.value}'
+            path = f'{os.path.dirname(os.path.abspath(__file__))}/../assets/libraries/{directory}/{fn.value}'
             with open(f'{path}', 'r') as f:
                 code = f.read()
                 f.close()
             r , e = exe.run(path, code)
-                    
+            if e: return res.fail(e)
         else:
             with open(f'{fn.value}', 'r') as fl:
                 code = fl.read()
@@ -1175,6 +1175,11 @@ class BuiltInFunc(BaseFunc):
         arg = exec_ctx.symbol_table.get_var("value")[0]
         arg = Integer(arg)
         return RTResult().success(arg)
+    
+    def _str_(self, exec_ctx):
+        arg = exec_ctx.symbol_table.get_var("value")[0]
+        arg = String(arg)
+        return RTResult().success(arg)
 
     def _typeof_(self, exec_ctx):
         return RTResult().success(exec_ctx.symbol_table.get_var("value")[0].str_type)
@@ -1229,6 +1234,7 @@ class BuiltInFunc(BaseFunc):
     _len_.arg_names = ["value"]
     _awaits_.arg_names = ["miliseconds"]
     _run_.arg_names = ["fn"]
+    _str_.arg_names = ["value"]
 
 
 class NoneType(Value):
@@ -1255,6 +1261,7 @@ BuiltInFunc.typeof = BuiltInFunc("typeof")
 BuiltInFunc.len = BuiltInFunc("len")
 BuiltInFunc.awaits = BuiltInFunc("awaits")
 BuiltInFunc.run = BuiltInFunc("run")
+BuiltInFunc.str = BuiltInFunc("str")
 
 
 Integer.null = Integer(0)
