@@ -13,13 +13,13 @@
 - Functions and built-in functions
 - Multi-line statments
 - File support
-- Importing built-in libraries
+- Importing built-in libraries and custom files
 - Comments 
 
 
 ### How to use Kromium
 
-To execute a program, open *kromiumlang.exe* and use the built-in function **run("path/to/file.kr")**
+To execute a program, run *__main__.py* and use the built-in function **run("path/to/file.kr")**
 
 
 
@@ -52,14 +52,15 @@ age += 1 ...
 ```
 
 **Variables can be constants**
+**Variables can be unfinished by using a ;**
 
 ```c
 new const string name = "Bob"
 new const int age = 22
-new const double gpa = 3.7
+new const double gpa;
 new const list grades = ["A", "B" , "D", "B"]
 
-name += " Ross" //Throws an error
+name += " Ross" ~Throws an error~
 
 ```
 
@@ -147,7 +148,7 @@ while i < 10 {
 #### Operators
 
 |     Name          |      Op     |
-|---------------    |-------------|
+|-------------------|-------------|
 | addition          | +           |
 | subtaction        | -           | 
 | multiplication    | *           |
@@ -174,6 +175,21 @@ include "#Math.kr"
 Current libraries:
 - Math: abs, add, cos, div, fact, floor, log2, mul, roof, round, sin, sqrt, sub
 - String (*coming soon!*)
-- Kraphics(*coming soon!*)
+- KrTools (*coming soon!*)
+- Kraphics (*maybe*)
 
+To import a .kr file, use *include* keyword followed by a string containing a path to file
 
+```ruby
+include "path/to/file.kr"
+```
+
+#### Comments
+
+Syntax: ```~something~```
+
+```ruby
+
+~This is how you write a comment~
+
+```
